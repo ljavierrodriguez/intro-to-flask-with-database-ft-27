@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from models import db, Task
 
 bp = Blueprint("bp", __name__)
@@ -13,23 +13,28 @@ def all_tasks():
 
 @bp.route('/tasks', methods=['POST'])
 def create_task():
-    label = request.json.get("label")
-    user_id = request.json.get("user_id", 1)
+    try:
+        label = request.json.get("label")
+        user_id = request.json.get("user_id", 1)
 
-    if not label:
-        return jsonify({"label": "this field is required"}), 400
-    
-    task = Task()
-    task.label = label
-    task.user_id = user_id
+        if not label:
+            return jsonify({"label": "this field is required"}), 400
+        
+        task = Task()
+        task.label = label
+        task.user_id = user_id
 
-    db.session.add(task)
-    db.session.commit()
+        db.session.add(task)
+        db.session.commit()
 
-    if task:
-        return jsonify({ "status": "Task created", "task": task.serialize()}), 201
-    else:
-        return jsonify({"status": "Task not created", "task": None}), 400
+        if task:
+            return jsonify({ "status": "Task created", "task": task.serialize()}), 201
+        else:
+            return jsonify({"status": "Task not created", "task": None}), 400
+        
+    except Exception as e:
+        print(e)
+        abort(500, e)
     
 @bp.route('/tasks/<int:id>', methods=['DELETE'])
 def delete_task(id):
