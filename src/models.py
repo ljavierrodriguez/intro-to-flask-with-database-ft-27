@@ -20,3 +20,11 @@ class Task(db.Model):
     label = db.Column(db.String(255), nullable=False)
     done = db.Column(db.Boolean(), default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "label": self.label,
+            "done": self.done,
+            "user": self.user.username
+        }
