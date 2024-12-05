@@ -4,7 +4,10 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
 from models import db, User, Task
+from flask_jwt_extended import JWTManager
 from routes.tasks import bp
+from routes.auth import bpAuth
+from werkzeug.security import generate_password_hash
 
 load_dotenv()
 
@@ -15,9 +18,11 @@ app = Flask(__name__, instance_path=PATH)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
 db.init_app(app)
 Migrate(app, db) # flask db init, db migrate, db upgrade, db downgrade
+jwt = JWTManager(app)
 CORS(app)
 
 @app.errorhandler(404)
@@ -33,20 +38,25 @@ def main():
     return jsonify({ "status": "Server running successfully"}), 200
 
 app.register_blueprint(bp, url_prefix="/api")
+app.register_blueprint(bpAuth, url_prefix="/api")
 
 with app.app_context():
     #pass
     #'''
-    user = User.query.filter_by(username="test").first()
-    if not user:
-        user = User()
-        user.username = "test"
-        user.password = "test"
+    try:
+        user = User.query.filter_by(username="test").first()
+        if not user:
+            user = User()
+            user.username = "test"
+            user.password = generate_password_hash("test")
 
-        db.session.add(user)
-        db.session.commit()
-        print("User test created")
+            db.session.add(user)
+            db.session.commit()
+            print("User test created")
+    except Exception as e:
+        print(e)
     #'''
+
 
 if __name__ == '__main__':
     app.run()

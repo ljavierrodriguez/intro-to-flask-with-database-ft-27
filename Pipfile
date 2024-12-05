@@ -11,6 +11,7 @@ flask-cors = "*"
 python-dotenv = "*"
 pymysql = "*"
 psycopg2-binary = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 
